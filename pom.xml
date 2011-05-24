@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>jp.que.ti.rpscala</groupId>
+    <artifactId>rpscala201106</artifactId>
+    <packaging>jar</packaging>
+    <name>rpscala201106</name>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <properties>
+        <!-- "project.build.sourceEncoding" は様々なプラグインのencodingに作用するので問題あればはずす -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <scalaPluginVersion>2.12</scalaPluginVersion>
+        <scala.version>2.8.1</scala.version>
+        <scala.test.version>1.3</scala.test.version>
+        <ygm_m.version>0.0.1-SNAPSHOT</ygm_m.version>
+        <ygm_v_sw.version>0.0.1-SNAPSHOT</ygm_v_sw.version>
+        <ygm_vc.version>0.0.1-SNAPSHOT</ygm_vc.version>
+        <ygm_vc_sw.version>0.0.1-SNAPSHOT</ygm_vc_sw.version>
+
+        <logback.version.classic>[0.9.28,0.9.999)</logback.version.classic>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>scala-tools.org</id>
+            <name>Scala-tools Maven2 Repository</name>
+            <url>http://scala-tools.org/repo-releases</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>scala-tools.org</id>
+            <name>Scala-tools Maven2 Repository</name>
+            <url>http://scala-tools.org/repo-releases</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <build>
+        <sourceDirectory>src/main/scala</sourceDirectory>
+        <testSourceDirectory>src/test/scala</testSourceDirectory>
+
+        <plugins>
+            <plugin>
+                <groupId>org.scala-tools</groupId>
+                <artifactId>maven-scala-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+                <!-- <version>[2.12,)</version> ... (see other usage or goals for details)
+                        ... -->
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+
+            <!-- "maven-surefire-report-plugin" を "test","install" フェーズでも 有効にする -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <include>**/MatrixTest.*</include>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>2.8</version>
+                <executions>
+                    <execution>
+                        <id>test-surefire-report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report-only</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>install-surefire-report</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>report-only</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>[4.0,5.0)</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest</artifactId>
+            <version>${scala.test.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.scala-tools.testing</groupId>
+            <artifactId>specs_2.8.1</artifactId>
+            <version>[1.6,2.0)</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>${scala.version}</version>
+        </dependency>
+        <!-- <dependency> <groupId>org.slf4j</groupId> <artifactId>slf4j-api</artifactId>
+              <artifactId>slf4j-simple</artifactId> <version>[1.6.1,1.6.999)</version>
+              </dependency> -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version.classic}</version>
+        </dependency>
+    </dependencies>
+</project>
