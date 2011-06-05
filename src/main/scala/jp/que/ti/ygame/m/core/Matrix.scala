@@ -133,12 +133,29 @@ final case class MatrixWithDouble private[core](x: Double, y: Double, z: Double)
  * @param ypos Y座標
  * @param zpos Z座標
  */
-final case class MatrixWithInt private[core](xByInt: Int, yByInt: Int, zByInt: Int) extends MatrixWithIntBase {
+final case class MatrixWithInt private[core](xByInt: Int, yByInt: Int, zByInt: Int) extends Matrix {
+
+  override def x = xByInt
+
+  override def y = yByInt
+
+  override def z = zByInt
+
+
   override def add(matrix: Matrix): Matrix = matrix match {
-    case mInt: MatrixWithInt => super.add(mInt)
-    case mInt2D: MatrixWithInt2D => super.add(mInt2D)
+    case mInt: MatrixWithInt => add(mInt)
+    case mInt2D: MatrixWithInt2D => add(mInt2D)
     case mtx => super.add(mtx)
   }
+
+  def add(matrix: MatrixWithInt): MatrixWithInt = Matrix(xByInt + matrix.xByInt, yByInt + matrix.yByInt, zByInt + matrix.zByInt)
+
+  def +(matrix: MatrixWithInt): MatrixWithInt = add(matrix)
+
+
+  def add(matrix: MatrixWithInt2D): MatrixWithInt = Matrix(xByInt + matrix.xByInt, yByInt + matrix.yByInt, zByInt)
+
+  def +(matrix: MatrixWithInt2D): MatrixWithInt = add(matrix)
 
   override def product(scalarValue: Int): MatrixWithInt = MatrixWithInt(xByInt * scalarValue, yByInt * scalarValue, zByInt * scalarValue)
 
@@ -210,15 +227,25 @@ final case class MatrixWithDouble2D private[core](x: Double, y: Double) extends 
  * @param xpos X座標
  * @param ypos Y座標
  */
-final case class MatrixWithInt2D private[core](xByInt: Int, yByInt: Int) extends MatrixWithIntBase with Matrix2D {
+final case class MatrixWithInt2D private[core](xByInt: Int, yByInt: Int) extends Matrix2D {
+  override def x = xByInt
+
+  override def y = yByInt
+
+  override def z = zByInt
+
   def add(matrix: MatrixWithInt2D): MatrixWithInt2D = MatrixWithInt2D(xByInt + matrix.xByInt, yByInt + matrix.yByInt)
 
   def +(matrix: MatrixWithInt2D): MatrixWithInt2D = add(matrix)
 
+  def add(matrix: MatrixWithInt): MatrixWithInt = MatrixWithInt(xByInt + matrix.xByInt, yByInt + matrix.yByInt, matrix.zByInt)
+
+  def +(matrix: MatrixWithInt): MatrixWithInt = add(matrix)
+
   override def add(matrix: Matrix): Matrix = matrix match {
     case mInt2D: MatrixWithInt2D => MatrixWithInt2D(xByInt + mInt2D.xByInt, yByInt + mInt2D.yByInt)
     case mDouble2D: MatrixWithDouble2D => MatrixWithDouble2D(x + mDouble2D.x, y + mDouble2D.y)
-    case mInt: MatrixWithInt => super.add(mInt)
+    case mInt: MatrixWithInt => add(mInt)
     case mtx => super.add(mtx)
   }
 
@@ -226,45 +253,10 @@ final case class MatrixWithInt2D private[core](xByInt: Int, yByInt: Int) extends
 
   def +(matrix: MatrixWithDouble2D): MatrixWithDouble2D = add(matrix)
 
-  override def add(matrix: MatrixWithInt): MatrixWithInt = MatrixWithInt(xByInt + matrix.xByInt, yByInt + matrix.yByInt, matrix.zByInt)
-
-  override def +(matrix: MatrixWithInt): MatrixWithInt = add(matrix)
-
-  override def add(matrix: MatrixWithIntBase): MatrixWithIntBase = matrix match {
-    case pointWithInt2D: MatrixWithInt2D => add(pointWithInt2D)
-    case pointWithInt: MatrixWithInt => add(pointWithInt)
-    case other => super.add(other)
-  }
-
   override def product(scalarValue: Int): MatrixWithInt2D = MatrixWithInt2D(xByInt * scalarValue, yByInt * scalarValue)
 
   override def productValueAndAdd(scalarValue: Int): MatrixWithInt2D =
     MatrixWithInt2D(xByInt + xByInt * scalarValue, yByInt + yByInt * scalarValue)
-}
-
-/**
- * 座標の要素をInt型で管理するを座標クラス。当クラスはマーキングが主目的のクラスです
- * @author yhj
- *
- * @param xpos X座標
- * @param ypos Y座標
- * @param zpos Z座標
- */
-private[core] abstract trait MatrixWithIntBase extends Matrix {
-  override def x = xByInt
-
-  override def y = yByInt
-
-  override def z = zByInt
-
-  def add(point: MatrixWithInt): MatrixWithInt = MatrixWithInt(xByInt + point.xByInt, yByInt + point.yByInt, zByInt + point.zByInt)
-
-  def +(matrix: MatrixWithInt): MatrixWithInt = add(matrix)
-
-  def add(point: MatrixWithIntBase): MatrixWithIntBase = MatrixWithInt(xByInt + point.xByInt, yByInt + point.yByInt, zByInt + point.zByInt)
-
-  def +(matrix: MatrixWithIntBase): MatrixWithIntBase = add(matrix)
-
 }
 
 }
