@@ -5,7 +5,7 @@ package jp.que.ti.ygame.m.core {
  * インスタンス生成は、object [[jp.que.ti.ygame.m.core.Matrix]]の apply メソッドを使用する。
  * @author yhj
  */
-sealed trait Matrix {
+sealed abstract class Matrix {
   /**[[scala.Int]]型のx座標 */
   def xByInt: Int
 
@@ -24,19 +24,44 @@ sealed trait Matrix {
   /**z座標 */
   def z: Double
 
-  /**
-   * この行列と引数の行列の和を返却する
-   * @param matrix 和を計算する対象の行列
-   * @return 行列の和
-   */
-  def add(matrix: Matrix): Matrix = Matrix(x + matrix.x, y + matrix.y, z + matrix.z)
+  override def equals(any: Any): Boolean = any match {
+    case matrix: Matrix => x == matrix.x && y == matrix.y && z == matrix.z
+    case other => false
+  }
+
+  override def hashCode: Int = 9999991 + 10007919 * xByInt + 10093 * yByInt + 2053 * zByInt
+
+  override def toString: String = getClass.getSimpleName + "(" + x + " ," + y + " ," + z + ")"
+
+  private final def _add(matrix: Matrix): Matrix = Matrix(x + matrix.x, y + matrix.y, z + matrix.z)
 
   /**
    * この行列と引数の行列の和を返却する
    * @param matrix 和を計算する対象の行列
    * @return 行列の和
    */
-  def +(matrix: Matrix): Matrix = add(matrix)
+  def add(matrix: Matrix): Matrix = _add(matrix)
+
+  /**
+   * この行列と引数の行列の和を返却する
+   * @param matrix 和を計算する対象の行列
+   * @return 行列の和
+   */
+  final def +(matrix: Matrix): Matrix = add(matrix)
+
+  def add(matrix: MatrixWithInt2D): Matrix = _add(matrix)
+
+  final def +(matrix: MatrixWithInt2D): Matrix = add(matrix)
+
+  def add(matrix: MatrixWithInt): Matrix = _add(matrix)
+
+  final def +(matrix: MatrixWithInt): Matrix = add(matrix)
+
+  def add(matrix: MatrixWithDouble2D): Matrix = _add(matrix)
+
+  final def +(matrix: MatrixWithDouble2D): Matrix = add(matrix)
+
+  //*************
 
   /**
    * この行列の実数倍(引数)を返却する
@@ -86,21 +111,21 @@ sealed trait Matrix {
  */
 object Matrix {
   /**[[jp.que.ti.ygame.m.core.Matrix]]インスタンス生成メソッド */
-  def apply(x: Int, y: Int, z: Int): MatrixWithInt = MatrixWithInt(x, y, z)
+  def apply(x: Int, y: Int, z: Int): MatrixWithInt = new MatrixWithInt(x, y, z)
 
   /**[[jp.que.ti.ygame.m.core.Matrix]]インスタンス生成メソッド */
-  def apply(x: Int, y: Int): MatrixWithInt2D = MatrixWithInt2D(x, y)
+  def apply(x: Int, y: Int): MatrixWithInt2D = new MatrixWithInt2D(x, y)
 
   /**[[jp.que.ti.ygame.m.core.Matrix]]インスタンス生成メソッド */
-  def apply(x: Double, y: Double, z: Double): MatrixWithDouble = MatrixWithDouble(x, y, z)
+  def apply(x: Double, y: Double, z: Double): MatrixWithDouble = new MatrixWithDouble(x, y, z)
 
   /**[[jp.que.ti.ygame.m.core.Matrix]]インスタンス生成メソッド */
-  def apply(x: Double, y: Double): MatrixWithDouble2D = MatrixWithDouble2D(x, y)
+  def apply(x: Double, y: Double): MatrixWithDouble2D = new MatrixWithDouble2D(x, y)
 
   /**すべての要素がIntの最小値である[[jp.que.ti.ygame.m.core.Matrix]]インスタンス */
-  val intMin: Matrix = MatrixWithInt(Int.MinValue, Int.MinValue, Int.MinValue)
+  val intMin: Matrix = new MatrixWithInt(Int.MinValue, Int.MinValue, Int.MinValue)
   /**すべての要素が0である[[jp.que.ti.ygame.m.core.Matrix]]インスタンス */
-  val Zero: Matrix = MatrixWithInt(0, 0, 0)
+  val Zero: Matrix = new MatrixWithInt2D(0, 0)
 }
 
 /**
@@ -114,7 +139,7 @@ object Matrix {
  * @param ypos Y座標
  * @param zpos Z座標
  */
-final case class MatrixWithDouble private[core](x: Double, y: Double, z: Double) extends Matrix {
+class MatrixWithDouble private[core](val x: Double, val y: Double, val z: Double) extends Matrix {
   def xByInt: Int = x.intValue
 
   def yByInt: Int = y.intValue
@@ -133,7 +158,7 @@ final case class MatrixWithDouble private[core](x: Double, y: Double, z: Double)
  * @param ypos Y座標
  * @param zpos Z座標
  */
-final case class MatrixWithInt private[core](xByInt: Int, yByInt: Int, zByInt: Int) extends Matrix {
+class MatrixWithInt private[core](val xByInt: Int, val yByInt: Int, val zByInt: Int) extends Matrix {
 
   override def x = xByInt
 
@@ -141,43 +166,39 @@ final case class MatrixWithInt private[core](xByInt: Int, yByInt: Int, zByInt: I
 
   override def z = zByInt
 
+  override def add(matrix: Matrix): Matrix = matrix.add(this)
 
-  override def add(matrix: Matrix): Matrix = matrix match {
-    case mInt: MatrixWithInt => add(mInt)
-    case mInt2D: MatrixWithInt2D => add(mInt2D)
-    case mtx => super.add(mtx)
-  }
+  override def add(matrix: MatrixWithInt): MatrixWithInt =
+    Matrix(xByInt + matrix.xByInt, yByInt + matrix.yByInt, zByInt + matrix.zByInt)
 
-  def add(matrix: MatrixWithInt): MatrixWithInt = Matrix(xByInt + matrix.xByInt, yByInt + matrix.yByInt, zByInt + matrix.zByInt)
+  override def add(matrix: MatrixWithInt2D): MatrixWithInt =
+    Matrix(xByInt + matrix.xByInt, yByInt + matrix.yByInt, zByInt)
 
-  def +(matrix: MatrixWithInt): MatrixWithInt = add(matrix)
+  override def product(scalarValue: Int): MatrixWithInt =
+    Matrix(xByInt * scalarValue, yByInt * scalarValue, zByInt * scalarValue)
 
-
-  def add(matrix: MatrixWithInt2D): MatrixWithInt = Matrix(xByInt + matrix.xByInt, yByInt + matrix.yByInt, zByInt)
-
-  def +(matrix: MatrixWithInt2D): MatrixWithInt = add(matrix)
-
-  override def product(scalarValue: Int): MatrixWithInt = MatrixWithInt(xByInt * scalarValue, yByInt * scalarValue, zByInt * scalarValue)
-
-  override def productValueAndAdd(scalarValue: Int): Matrix = Matrix(xByInt + xByInt * scalarValue, yByInt + yByInt * scalarValue, zByInt + zByInt * scalarValue)
+  override def productValueAndAdd(scalarValue: Int): Matrix =
+    Matrix(xByInt + xByInt * scalarValue, yByInt + yByInt * scalarValue, zByInt + zByInt * scalarValue)
 }
 
 /**
  * Z座標は0固定の座標を表すtrait
  * @author yhj
  */
-private[core] abstract trait Matrix2D extends Matrix {
+private[core] trait Matrix2D extends Matrix {
   def zByInt: Int = 0
 
-  override def product(scalarValue: Double): MatrixWithDouble2D = MatrixWithDouble2D(x * scalarValue, y * scalarValue)
+  override def toString: String = getClass.getSimpleName + "(" + x + " ," + y + ")"
 
-  override def product(scalarValue: Long): MatrixWithDouble2D = MatrixWithDouble2D(x * scalarValue, y * scalarValue)
+  override def product(scalarValue: Double): MatrixWithDouble2D = new MatrixWithDouble2D(x * scalarValue, y * scalarValue)
+
+  override def product(scalarValue: Long): MatrixWithDouble2D = new MatrixWithDouble2D(x * scalarValue, y * scalarValue)
 
   override def productValueAndAdd(scalarValue: Double): MatrixWithDouble2D =
-    MatrixWithDouble2D(x + x * scalarValue, y + y * scalarValue)
+    new MatrixWithDouble2D(x + x * scalarValue, y + y * scalarValue)
 
   override def productValueAndAdd(scalarValue: Long): MatrixWithDouble2D =
-    MatrixWithDouble2D(x + x * scalarValue, y + y * scalarValue)
+    new MatrixWithDouble2D(x + x * scalarValue, y + y * scalarValue)
 
 }
 
@@ -191,30 +212,23 @@ private[core] abstract trait Matrix2D extends Matrix {
  * @param xpos X座標
  * @param ypos Y座標
  */
-final case class MatrixWithDouble2D private[core](x: Double, y: Double) extends Matrix with Matrix2D {
+class MatrixWithDouble2D private[core](val x: Double, val y: Double) extends Matrix2D {
   def xByInt: Int = x.intValue
 
   def yByInt: Int = y.intValue
 
   def z: Double = zByInt
 
-  def add(matrix: MatrixWithDouble2D): MatrixWithDouble2D = MatrixWithDouble2D(x + matrix.x, y + matrix.y)
+  override def add(matrix: Matrix): Matrix = matrix.add(this)
 
-  def +(matrix: MatrixWithDouble2D): MatrixWithDouble2D = add(matrix)
+  override def add(matrix: MatrixWithDouble2D): MatrixWithDouble2D = new MatrixWithDouble2D(x + matrix.x, y + matrix.y)
 
-  def add(matrix: MatrixWithInt2D): MatrixWithDouble2D = MatrixWithDouble2D(x + matrix.x, y + matrix.y)
+  override def add(matrix: MatrixWithInt2D): MatrixWithDouble2D = new MatrixWithDouble2D(x + matrix.x, y + matrix.y)
 
-  def +(matrix: MatrixWithInt2D): MatrixWithDouble2D = add(matrix)
-
-  override def add(matrix: Matrix): Matrix = matrix match {
-    case mInt2D: MatrixWithInt2D => MatrixWithDouble2D(x + mInt2D.x, y + mInt2D.y)
-    case mtx => super.add(mtx)
-  }
-
-  override def product(scalarValue: Int): MatrixWithDouble2D = MatrixWithDouble2D(x * scalarValue, y * scalarValue)
+  override def product(scalarValue: Int): MatrixWithDouble2D = new MatrixWithDouble2D(x * scalarValue, y * scalarValue)
 
   override def productValueAndAdd(scalarValue: Int): MatrixWithDouble2D =
-    MatrixWithDouble2D(x + x * scalarValue, y + y * scalarValue)
+    new MatrixWithDouble2D(x + x * scalarValue, y + y * scalarValue)
 }
 
 /**
@@ -227,36 +241,62 @@ final case class MatrixWithDouble2D private[core](x: Double, y: Double) extends 
  * @param xpos X座標
  * @param ypos Y座標
  */
-final case class MatrixWithInt2D private[core](xByInt: Int, yByInt: Int) extends Matrix2D {
+class MatrixWithInt2D private[core](val xByInt: Int, val yByInt: Int) extends Matrix2D {
   override def x = xByInt
 
   override def y = yByInt
 
   override def z = zByInt
 
-  def add(matrix: MatrixWithInt2D): MatrixWithInt2D = MatrixWithInt2D(xByInt + matrix.xByInt, yByInt + matrix.yByInt)
+  override def add(matrix: Matrix): Matrix = matrix.add(this)
 
-  def +(matrix: MatrixWithInt2D): MatrixWithInt2D = add(matrix)
+  override def add(matrix: MatrixWithInt2D): MatrixWithInt2D =
+    new MatrixWithInt2D(xByInt + matrix.xByInt, yByInt + matrix.yByInt)
 
-  def add(matrix: MatrixWithInt): MatrixWithInt = MatrixWithInt(xByInt + matrix.xByInt, yByInt + matrix.yByInt, matrix.zByInt)
+  override def add(matrix: MatrixWithInt): MatrixWithInt =
+    new MatrixWithInt(xByInt + matrix.xByInt, yByInt + matrix.yByInt, matrix.zByInt)
 
-  def +(matrix: MatrixWithInt): MatrixWithInt = add(matrix)
+  override def add(matrix: MatrixWithDouble2D): MatrixWithDouble2D =
+    new MatrixWithDouble2D(x + matrix.x, y + matrix.y)
 
-  override def add(matrix: Matrix): Matrix = matrix match {
-    case mInt2D: MatrixWithInt2D => MatrixWithInt2D(xByInt + mInt2D.xByInt, yByInt + mInt2D.yByInt)
-    case mDouble2D: MatrixWithDouble2D => MatrixWithDouble2D(x + mDouble2D.x, y + mDouble2D.y)
-    case mInt: MatrixWithInt => add(mInt)
-    case mtx => super.add(mtx)
-  }
-
-  def add(matrix: MatrixWithDouble2D): MatrixWithDouble2D = MatrixWithDouble2D(x + matrix.x, y + matrix.y)
-
-  def +(matrix: MatrixWithDouble2D): MatrixWithDouble2D = add(matrix)
-
-  override def product(scalarValue: Int): MatrixWithInt2D = MatrixWithInt2D(xByInt * scalarValue, yByInt * scalarValue)
+  override def product(scalarValue: Int): MatrixWithInt2D =
+    new MatrixWithInt2D(xByInt * scalarValue, yByInt * scalarValue)
 
   override def productValueAndAdd(scalarValue: Int): MatrixWithInt2D =
-    MatrixWithInt2D(xByInt + xByInt * scalarValue, yByInt + yByInt * scalarValue)
+    new MatrixWithInt2D(xByInt + xByInt * scalarValue, yByInt + yByInt * scalarValue)
+}
+
+abstract trait NegativeMatrix extends Matrix {
+  type t <: Matrix
+  val matrix: t
+
+  /**[[scala.Int]]型のx座標 */
+  def xByInt: Int = matrix.xByInt * -1
+
+  /**[[scala.Int]]型のy座標 */
+  def yByInt: Int = matrix.yByInt * -1
+
+  /**[[scala.Int]]型のz座標 */
+  def zByInt: Int = matrix.zByInt * -1
+
+  /**x座標 */
+  def x: Double = matrix.x * -1
+
+  /**y座標 */
+  def y: Double = matrix.y * -1
+
+  /**z座標 */
+  def z: Double = matrix.z * -1
+
+}
+
+final private[core] case class
+NegativeMatrixWithInt2D(
+                         override val matrix: MatrixWithInt2D
+                         ) extends NegativeMatrix with Matrix2D {
+  type t = MatrixWithInt2D
+
+  override def zByInt = 0
 }
 
 }
